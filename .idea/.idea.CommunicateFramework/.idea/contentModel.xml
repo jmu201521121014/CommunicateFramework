@@ -1,10 +1,35 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ContentModelStore">
     <e p="C:\Users\linyutao\.Rider2019.2\system\extResources" t="IncludeRecursive" />
     <e p="C:\Users\linyutao\.Rider2019.2\system\resharper-host\local\Transient\ReSharperHost\v192\SolutionCaches\_CommunicateFramework.-145990367.00" t="ExcludeRecursive" />
     <e p="D:\毕设\code\CommunicateFramework\CommunicateFramework" t="IncludeFlat">
+      <e p="CommunicateFramework" t="IncludeRecursive">
+        <e p="ace" t="Include">
+          <e p="AbsHandlerCenter.cs" t="Include" />
+          <e p="AbsLengthEncoding.cs" t="Include" />
+          <e p="AbsMessageEncoding.cs" t="Include" />
+          <e p="auto" t="Include">
+            <e p="LengthEncoding.cs" t="Include" />
+            <e p="MessageEncoding.cs" t="Include" />
+            <e p="ScoketModel.cs" t="Include" />
+          </e>
+          <e p="ByteArray.cs" t="Include" />
+          <e p="Delegates.cs" t="Include" />
+          <e p="IOCPServ.cs" t="Include" />
+          <e p="SerializeUtil.cs" t="Include" />
+          <e p="UserToken.cs" t="Include" />
+          <e p="UserTokenPool.cs" t="Include" />
+        </e>
+        <e p="bin" t="ExcludeRecursive" />
+        <e p="CommunicateFramework.csproj" t="IncludeRecursive" />
+        <e p="obj" t="ExcludeRecursive" />
+        <e p="Properties" t="Include">
+          <e p="AssemblyInfo.cs" t="Include" />
+        </e>
+      </e>
       <e p="CommunicateFramework.sln" t="IncludeFlat" />
+      <e p="packages" t="ExcludeRecursive" />
     </e>
   </component>
 </project>
