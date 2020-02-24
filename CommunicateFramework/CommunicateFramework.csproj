@@ -43,7 +43,7 @@
     <Compile Include="ace\AbsMessageEncoding.cs" />
     <Compile Include="ace\auto\LengthEncoding.cs" />
     <Compile Include="ace\auto\MessageEncoding.cs" />
-    <Compile Include="ace\auto\ScoketModel.cs" />
+    <Compile Include="ace\auto\SocketModel.cs" />
     <Compile Include="ace\ByteArray.cs" />
     <Compile Include="ace\Delegates.cs" />
     <Compile Include="ace\IOCPServ.cs" />

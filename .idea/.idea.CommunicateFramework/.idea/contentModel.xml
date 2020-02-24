@@ -12,7 +12,7 @@
           <e p="auto" t="Include">
             <e p="LengthEncoding.cs" t="Include" />
             <e p="MessageEncoding.cs" t="Include" />
-            <e p="ScoketModel.cs" t="Include" />
+            <e p="SocketModel.cs" t="Include" />
           </e>
           <e p="ByteArray.cs" t="Include" />
           <e p="Delegates.cs" t="Include" />
