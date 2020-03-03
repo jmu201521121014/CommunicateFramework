@@ -1,78 +1,125 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 
 namespace CommunicateFramework.ace
 {
-    public class ByteArray
+   public class ByteArray
     {
-        private MemoryStream _m_memoryStream = new MemoryStream();
+       MemoryStream ms = new MemoryStream();
 
-        private BinaryWriter bw;
-        private BinaryReader br;
+       BinaryWriter bw;
+       BinaryReader br;
 
-        public void Close()
-        {
-            bw.Close();
-            br.Close();
-            _m_memoryStream.Close();
-        }
+       public void Close() {
+           bw.Close();
+           br.Close();
+           ms.Close();
+       }
 
-        public ByteArray(byte[] buff)
-        {
-            if(_m_memoryStream != null)
-                _m_memoryStream.Close();
-            _m_memoryStream = new MemoryStream(buff);
-            bw = new BinaryWriter(_m_memoryStream);
-            br = new BinaryReader(_m_memoryStream);
-        }
+       public ByteArray(byte[] buff) {
+           ms = new MemoryStream(buff);
+           bw = new BinaryWriter(ms);
+           br = new BinaryReader(ms);
+       }
 
-        public ByteArray()
-        {
-            bw = new BinaryWriter(_m_memoryStream);
-            br = new BinaryReader(_m_memoryStream);
-        }
+       public int Position {
+           get { return (int)ms.Position; }
+       }
 
-        public int Position { get { return (int) _m_memoryStream.Position; } }
-        public int Length { get { return (int) _m_memoryStream.Length; } }
-        
-        public bool Readable { get { return _m_memoryStream.Length > _m_memoryStream.Position; } }
+       public int Length
+       {
+           get { return (int)ms.Length; }
+       }
 
-        #region write
+       public bool Readnable{
+           get { return ms.Length > ms.Position; }
+       }
 
-        public void write(int value)
-        {
-            bw.Write(value);
-        }
-        public void write(byte value)
-        {
-            bw.Write(value);
-        }
-        public void write(bool value)
-        {
-            bw.Write(value);
-        }
-        public void write(string value)
-        {
-            bw.Write(value);
-        }
-        public void write(byte[] value)
-        {
-            bw.Write(value);
-        }
-        public void write(double value)
-        {
-            bw.Write(value);
-        }
-        public void write(float value)
-        {
-            bw.Write(value);
-        }
+      public ByteArray() {
+           bw = new BinaryWriter(ms);
+           br = new BinaryReader(ms);
+       }
 
-        #endregion
+      public void write(int value) {
+          bw.Write(value);
+      }
+      public void write(byte value)
+      {
+          bw.Write(value);
+      }
+      public void write(bool value)
+      {
+          bw.Write(value);
+      }
+      public void write(string value)
+      {
+          bw.Write(value);
+      }
+      public void write(byte[] value)
+      {
+          bw.Write(value);
+      }
 
-        #region read
+      public void write(double value)
+      {
+          bw.Write(value);
+      }
+      public void write(float value)
+      {
+          bw.Write(value);
+      }
+      public void write(long value)
+      {
+          bw.Write(value);
+      }
 
-        
 
-        #endregion
+      public void read(out int value)
+      {
+          value= br.ReadInt32();
+      }
+      public void read(out byte value)
+      {
+          value = br.ReadByte();
+      }
+      public void read(out bool value)
+      {
+          value = br.ReadBoolean();
+      }
+      public void read(out string value)
+      {
+          value = br.ReadString();
+      }
+      public void read(out byte[] value,int length)
+      {
+          value = br.ReadBytes(length);
+      }
+
+      public void read(out double value)
+      {
+          value = br.ReadDouble();
+      }
+      public void read(out float value)
+      {
+          value = br.ReadSingle();
+      }
+      public void read(out long value)
+      {
+          value = br.ReadInt64();
+      }
+
+      public void reposition() {
+          ms.Position = 0;
+      }
+
+      public byte[] getBuff()
+      {
+          byte[] result = new byte[ms.Length];
+          Buffer.BlockCopy(ms.GetBuffer(), 0, result, 0, (int)ms.Length);
+          return result;
+      }
     }
 }

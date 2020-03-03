@@ -1,28 +1,32 @@
-﻿namespace CommunicateFramework.ace.auto
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace CommunicateFramework.ace.auto
 {
-    public class MessageEncoding
+   public class MessageEncoding
     {
-        public static byte[] Encode(object _obj)
+        public static byte[] Encode(object value)
         {
-            SocketModel sm = _obj as SocketModel;
+            SocketModel sm = value as SocketModel;
             ByteArray ba = new ByteArray();
             ba.write(sm.type);
             ba.write(sm.area);
             ba.write(sm.command);
             if (sm.message != null)
             {
-                byte[] a = SerializeUtil.encode(sm.message);
-                ba.write(a);
+                byte[] m = SerializeUtil.encode(sm.message);
+               ba.write(m);
             }
-
-            byte[] res = ba.getBuff();
+            byte[] result = ba.getBuff();
             ba.Close();
-            return res;
+            return result;
         }
 
-        public static object Decode(byte[] _byteArray)
+        public static object Decode(byte[] value)
         {
-            ByteArray ba = new ByteArray(_byteArray);
+            ByteArray ba = new ByteArray(value);
             SocketModel sm = new SocketModel();
             int type;
             int area;
@@ -33,13 +37,11 @@
             sm.type = type;
             sm.area = area;
             sm.command = command;
-            if (ba.Readable)
-            {
+            if (ba.Readnable) {
                 byte[] message;
-                ba.read(out message, ba.Length - ba.Position);
+                ba.read(out message,ba.Length-ba.Position);
                 sm.message = SerializeUtil.decoder(message);
             }
-
             ba.Close();
             return sm;
         }

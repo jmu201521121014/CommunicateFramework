@@ -1,108 +1,90 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
+using System.Text;
 
 namespace CommunicateFramework.ace
 {
-    public class UserToken
+   public class UserToken
     {
-        public SocketAsyncEventArgs m_receiveEvent;
-        public SocketAsyncEventArgs m_sendEvent;
-        public Socket m_connectSocket;
+       public SocketAsyncEventArgs receiveEvent;
+       public SocketAsyncEventArgs sendEvent;
+       public Socket connectSocket;
+       public delegate void SendProcess(SocketAsyncEventArgs e);
+       public SendProcess sendProcess;
+       public delegate void CloseProcess(UserToken token,string error);
+       public CloseProcess closeProcess;
+       public List<byte> cache = new List<byte>();
+       public Queue<byte[]> writeQueue = new Queue<byte[]>();
+       #region 编码解码器委托
+       public delegate void MessageReceive(UserToken token, object message);
 
-        public Action<SocketAsyncEventArgs> sendProcess;
-        public Action<UserToken, string> closeProcess;
+       public LengthEncode lEnCode;
+       public LengthDecode lDecode;
+       public SerEncode sEncode;
+       public SerDecode sDecode;
+       public MessageReceive messageReceive;
+       #endregion
 
-        public List<byte> m_lCache = new List<byte>();
-        public Queue<byte[]> m_qWriteQueue = new Queue<byte[]>();
+       bool isReading = false;
+       bool isWriteing = false;
 
-        #region 编码解码器委托
-
-        public Action<UserToken, object> messageReceive;
-        public LengthEncode lEnCode;
-        public LengthDecode lDecode;
-        public SerEncodes sEncode;
-        public SerDecodes sDecode;
-        
-        #endregion
-
-        private bool _m_bIsReading = false;
-        private bool _m_bIsWriteing = false;
-
-        public UserToken(int _buffSize)
-        {
-            m_receiveEvent = new SocketAsyncEventArgs();
-            m_receiveEvent.UserToken = this;
-            m_sendEvent = new SocketAsyncEventArgs();
-            m_sendEvent.UserToken = this;
-            byte[] buff = new byte[_buffSize];
-            m_receiveEvent.SetBuffer(buff, 0, buff.Length);
+       public UserToken(int buffSize) {
+            receiveEvent = new SocketAsyncEventArgs();
+            receiveEvent.UserToken = this;
+            sendEvent = new SocketAsyncEventArgs();
+            sendEvent.UserToken = this;
+            byte[] buff = new byte[buffSize];
+            receiveEvent.SetBuffer(buff, 0, buff.Length);
         }
 
-        public void receive(byte[] _buff)
-        {
-            m_lCache.AddRange(_buff);
-            if (!_m_bIsReading)
+        public void receive(byte[] buff) {
+            cache.AddRange(buff);
+            if (!isReading)
             {
                 onData();
             }
         }
 
-        public void onData()
-        {
-            byte[] buff = null;
+        public void onData() {
+            byte[] buff=null;
             if (lDecode != null)
             {
-                buff = lDecode(ref m_lCache);
-                if (buff == null)
-                {
-                    _m_bIsReading = false;
-                    return;
-                }
-                else
-                {
-                    if(m_lCache.Count == 0)
-                        return;
-                    buff = m_lCache.ToArray();
-                    m_lCache.Clear();
-                }
-                if(sDecode == null)
-                    throw new Exception("message decode process is null");
-                if(messageReceive == null)
-                    throw new Exception("messageReceive process is null");
-                object message = sDecode(buff);
-                messageReceive(this, message);
-                onData();
+                buff = lDecode(ref cache);
+                if (buff == null) { isReading = false; return; }
             }
+            else {
+                if (cache.Count == 0) return;
+                buff = cache.ToArray();
+                cache.Clear();
+            }
+            if (sDecode == null) throw new Exception("message decode process is null");
+            if (messageReceive == null) throw new Exception("messageReceive process is null");
+            object message = sDecode(buff);
+            messageReceive(this, message);
+            onData();
         }
 
-        public void write(object _value)
-        {
-            if(sEncode == null)
-                throw new Exception("message encode process is null");
-            byte[] decodes = sEncode(_value);
-            if (lEnCode != null)
-            {
-                decodes = lEnCode(decodes);
+        public void write(object value) {
+            if (sEncode == null) { throw new Exception("message encode process is null"); }
+            byte[] dcodes= sEncode(value);
+            if (lEnCode != null) {
+               dcodes= lEnCode(dcodes);
             }
-            write(decodes);
+            write(dcodes);
         }
 
         public void onWrite()
         {
-            if (m_qWriteQueue.Count == 0)
-            {
-                _m_bIsWriteing = false;
-                return;
-            }
-
-            byte[] buff = m_qWriteQueue.Dequeue();
-            m_sendEvent.SetBuffer(buff, 0, buff.Length);
-            bool result = m_connectSocket.SendAsync(m_sendEvent);
-            if (!result)
-            {
-                sendProcess(m_sendEvent);
-            }
+            if (writeQueue.Count == 0) { isWriteing = false; return; }
+            byte[] buff = writeQueue.Dequeue();
+                sendEvent.SetBuffer(buff, 0, buff.Length);
+                bool result = connectSocket.SendAsync(sendEvent);
+                if (!result)
+                {
+                    sendProcess(sendEvent);
+                }
         }
 
         public void sendEnd()
@@ -110,19 +92,38 @@ namespace CommunicateFramework.ace
             onWrite();
         }
 
-        public void write(byte[] _buff)
-        {
-            if (m_connectSocket == null)
-            {
-                closeProcess(this, "发送消息给已断开的连接");
-                return;
+       public void write(byte[] buff){
+           if (connectSocket == null) {
+               closeProcess(this,"发送消息给已断开的连接");
+               return;
+           }
+           writeQueue.Enqueue(buff);
+           if (!isWriteing)
+           {
+               isWriteing = true;
+               onWrite();
+           }
+           
+       }
+
+        public void colse() {
+            if (connectSocket == null) {
+                Console.WriteLine("fuck");
             }
-            m_qWriteQueue.Enqueue(_buff);
-            if (!_m_bIsWriteing)
+            try
             {
-                _m_bIsWriteing = true;
-                onWrite();
+                writeQueue.Clear();
+                cache.Clear();
+                isReading = false;
+                isWriteing = false;
+                connectSocket.Shutdown(SocketShutdown.Both);
+                connectSocket.Close();
+                connectSocket = null;   
             }
+            catch (Exception e){
+                Console.WriteLine(e.Message);
+            }
+                     
         }
     }
 }
